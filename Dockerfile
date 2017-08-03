@@ -8,6 +8,6 @@ RUN apt-get -yq update && \
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 ADD ./service/ /usr/src/app
-RUN yarn
-RUN yarn start
+CMD $HOME/.yarn/bin/yarn install
+CMD $HOME/.yarn/bin/yarn start
 EXPOSE 8000
