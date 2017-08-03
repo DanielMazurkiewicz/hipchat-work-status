@@ -7,7 +7,6 @@ RUN apt-get -yq update && \
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
-ARG registry
 ADD ./service/ /usr/src/app
 RUN yarn
 RUN yarn start
