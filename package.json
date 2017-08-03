@@ -1,0 +1,16 @@
+{
+  "name": "iAm",
+  "version": "0.0.1",
+  "description": "Hipchat work status service",
+  "main": "./src/iAmForHipchat.js",
+  "scripts": {
+    "start": "node ./src/iAmForHipchat.js"
+  },
+  "author": "Daniel Mazurkiewicz",
+  "repository": {},
+  "dependencies": {
+    "express": "^4.15.3",
+    "body-parser": "^1.17.2"
+  },
+  "devDependencies": {}
+}
