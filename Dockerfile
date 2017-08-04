@@ -6,6 +6,8 @@ WORKDIR /usr/src/app
 
 ADD ./service/ /usr/src/app
 
-CMD $HOME/.yarn/bin/yarn install
+RUN yarn install
+
+CMD yarn start
 
 EXPOSE 8000
