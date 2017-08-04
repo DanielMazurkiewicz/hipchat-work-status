@@ -4,7 +4,7 @@ const isEmptyChar = {
     ' ': true,
     '\t': true,
     '\n': true
-}
+};
 
 function getNextWord(text, startFrom = 0) {
     let start = startFrom;
@@ -15,7 +15,7 @@ function getNextWord(text, startFrom = 0) {
             word: ''
         }
     }
-    
+
     while (isEmptyChar[text[start]]) {
         start++;
     }
@@ -29,8 +29,8 @@ function getNextWord(text, startFrom = 0) {
         end,
         word: text.substring(start, end)
     }
-}
+};
 
 module.exports = {
     getNextWord
-}
+};

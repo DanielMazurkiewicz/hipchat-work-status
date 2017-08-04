@@ -1,57 +1,123 @@
 'use strict';
 
 const workStatus = require('./workStatus.js');
-const {getNextWord} = require('./stringHelpers.js');
-const {prepareResponse} = require('./hipChat.js');
+const hiddenCommands = require('./hiddenCommands.js');
+const commandsDescription = require('./commandsDescription.js');
+const {
+    getNextWord
+} = require('./stringHelpers.js');
+const {
+    prepareResponse
+} = require('./hipChat.js');
 
+function commandsFactory(whoIsWhere) {
+    const confused = (userName, userId, message, position, changedDbCallback) => {
+        let responseText = 'These are your options:\n';
+        [workStatus, appCommands].forEach(commands => {
+            for (let command in commands) {
+                if (!hiddenCommands[command]) {
+                    responseText += ` - ${command}`;
+                    if (commandsDescription[command]) {
+                        responseText += `: ${commandsDescription[command]}`;
+                    }
+                    responseText += '\n';
+                }
+            }
+        });
 
-function commandsFactory (whoIsWhere) {
-	const confused = (message, position) => {
-	    let responseText = 'These are your options:\n';
-	    for (let command in workStatus) {
-		responseText += ` - ${command}\n`;
-	    }
-	    for (let command in appCommands) {
-		responseText += ` - ${command}\n`;
-	    }
+        return prepareResponse(responseText);
+    };
 
-	    return prepareResponse(responseText);
-	};
+    const curious = (userName, userId, message, position, changedDbCallback) => {
+        let responseText = '';
 
-	const curious = (message, position) => {
-	    let responseText = '';
+        const nextWord = getNextWord(message, position);
+        const curiousAbout = nextWord.word;
 
-	    const nextWord = getNextWord(message, position);
-	    const curiousAbout = nextWord.word;
+        switch (curiousAbout) {
+            case 'details':
+                for (let employeeId in whoIsWhere) {
+                    let employee = whoIsWhere[employeeId];
+                    responseText += ` * ${employee.name} ${workStatus[employee.where]}\n`;
+                    responseText += `   since ${employee.timestamp}\n`;
+                    if (employee.reason) {
+                        responseText += `   (${employee.reason})\n`;
+                    }
+                }
+                break;
 
-	    switch (curiousAbout) {
-		case 'details':
-		    for (let employeeId in whoIsWhere) {
-		        let employee = whoIsWhere[employeeId]
-		        responseText += ` * ${employee.name} ${workStatus[employee.where]}\n`
-		        responseText += `   since ${employee.timestamp}\n`
-		        if (employee.reason) {
-		            responseText += `   (${employee.reason})\n`
-		        }
-		    }
-		    break;
-		default:
-		    for (let employeeId in whoIsWhere) {
-		        let employee = whoIsWhere[employeeId]
-		        responseText += `${employee.name} ${workStatus[employee.where]}\n`
-		    }
-	    }
+            case 'all':
+                for (let employeeId in whoIsWhere) {
+                    let employee = whoIsWhere[employeeId];
+                    responseText += `${employee.name} ${workStatus[employee.where]}\n`;
+                }
+                break;
 
-	    return prepareResponse(responseText);
-	};
+            case 'ids':
+                for (let employeeId in whoIsWhere) {
+                    let employee = whoIsWhere[employeeId];
+                    responseText += `${employee.name}: ${employeeId}\n`;
+                }
+                break;
 
-	const appCommands = {
-	    curious,
-	    confused,
-            help: confused
-	};
+            default:
+                for (let employeeId in whoIsWhere) {
+                    let employee = whoIsWhere[employeeId];
+                    if (employee.where !== 'atoffice') {
+                        responseText += `${employee.name} ${workStatus[employee.where]}\n`;
+                    }
+                }
+        }
 
-	return appCommands;
+        return prepareResponse(responseText);
+    };
+
+    const back = (userName, userId, message, position, changedDbCallback) => {
+        if (!whoIsWhere[userId]) {
+            return prepareResponse(`${userName} is nowhere and wants to get back`, 'red');
+        }
+        if (!whoIsWhere[userId].previous) {
+            return prepareResponse(`Access denied! Agent Smith is already looking for you ${userName}`, 'red');
+        }
+        whoIsWhere[userId] = whoIsWhere[userId].previous;
+        whoIsWhere[userId].timestamp = (new Date()).toISOString();
+        changedDbCallback();
+        return prepareResponse(`${userName} ${workStatus[whoIsWhere[userId].where]}`);
+    };
+
+    const who = (userName, userId, message, position, changedDbCallback) => {
+        return prepareResponse(`They call you: ${userName}, but most probably you are Elvis Presley`, 'red');
+    };
+
+    const kicking = (userName, userId, message, position, changedDbCallback) => {
+        let response;
+
+        const nextWord = getNextWord(message, position);
+        const theOneToKickOutId = nextWord.word;
+
+        if (whoIsWhere[theOneToKickOutId]) {
+            const theOneToKickOut = whoIsWhere[theOneToKickOutId];
+            delete whoIsWhere[theOneToKickOutId];
+            response = prepareResponse(`${userName} says: You are fired ${theOneToKickOut.name}!!! Pick your toys and get the f*** out!`);
+            changedDbCallback();
+        } else {
+            response = prepareResponse(`Ex`, 'red');
+        }
+
+        return response;
+    };
+
+    const appCommands = {
+        kicking,
+        who,
+        back,
+        curious,
+        confused,
+        help: confused,
+        '': curious
+    };
+
+    return appCommands;
 }
 
 module.exports = commandsFactory;
