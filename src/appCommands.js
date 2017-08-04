@@ -7,7 +7,7 @@ const {prepareResponse} = require('./hipChat.js');
 
 function commandsFactory (whoIsWhere) {
 	const confused = (message, position) => {
-	    let responseText = 'These are your options:';
+	    let responseText = 'These are your options:\n';
 	    for (let command in workStatus) {
 		responseText += ` - ${command}\n`;
 	    }
@@ -47,7 +47,8 @@ function commandsFactory (whoIsWhere) {
 
 	const appCommands = {
 	    curious,
-	    confused
+	    confused,
+            help: confused
 	};
 
 	return appCommands;
