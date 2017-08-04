@@ -95,13 +95,13 @@ function commandsFactory(whoIsWhere) {
         const nextWord = getNextWord(message, position);
         const theOneToKickOutId = nextWord.word;
 
-        if (whoIsWhere[theOneToKickOutId]) {
-            const theOneToKickOut = whoIsWhere[theOneToKickOutId];
+        const theOneToKickOut = whoIsWhere[theOneToKickOutId];
+        if (theOneToKickOut) {
             delete whoIsWhere[theOneToKickOutId];
             response = prepareResponse(`${userName} says: You are fired ${theOneToKickOut.name}!!! Pick your toys and get the f*** out!`);
             changedDbCallback();
         } else {
-            response = prepareResponse(`Ex`, 'red');
+            response = prepareResponse(`${userName} calm down, take it easy, think twice and then check again given id!`, 'red');
         }
 
         return response;
